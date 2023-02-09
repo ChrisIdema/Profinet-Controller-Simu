@@ -8,8 +8,8 @@ load_contrib("pnio_dcp")
 load_contrib("pnio")
 
 
-def get_ident_msg(src, name_of_station):
-    ether = Ether(dst="01:0e:cf:00:00:00", src=src, type=0x8892)
+def get_ident_msg(src, dst, name_of_station):
+    ether = Ether(dst=dst, src=src, type=0x8892)
     pnio_msg = ProfinetIO(frameID=DCP_IDENTIFY_REQUEST_FRAME_ID)
     pnio_dcp_ident = ProfinetDCP(
         service_id=DCP_SERVICE_ID_IDENTIFY,

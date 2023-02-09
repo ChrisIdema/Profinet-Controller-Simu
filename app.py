@@ -17,14 +17,15 @@ app = Flask(__name__)
 turbo = Turbo(app)
 
 connection = PNIOConnection(
-    device_name="name",
-    device_ip="ip",
-    iface="iface",
+    device_name="rt-labs-dev",
+    device_ip="172.20.0.100",
+    device_mac = "B8:27:EB:20:D7:93",
+    iface="enx00145c9bbee5",
     path_to_gsdml="./gsdml/test_project_2.xml",
 )
 connection.message_data = PNIOPSMessage()
 
-# connection.build_connection()
+connection.build_connection()
 
 
 connection_dict = {"connection_state": "building....", "connection": connection}

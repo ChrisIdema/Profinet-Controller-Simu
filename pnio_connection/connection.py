@@ -16,9 +16,9 @@ load_contrib("dce_rpc")
 
 
 class PNIOConnection:
-    def __init__(self, device_name, device_ip, iface, path_to_gsdml):
+    def __init__(self, device_name, device_ip, device_mac, iface, path_to_gsdml):
         self.auuid = str(uuid.uuid4())
-        self.mac_address_device = ""
+        self.mac_address_device = device_mac
         self.device_name = device_name
         self.mac_src = get_mac_address()
         self.device_ip = device_ip
@@ -58,16 +58,22 @@ class PNIOConnection:
 
     def build_connection(self):
         # IDENTIFY DEVICE AND MAC
-        ident_msg = get_ident_msg(src=self.mac_src, name_of_station=self.device_name)
-        ans, _ = srp(ident_msg, iface=self.iface, timeout=1, multi=True, verbose=False)
+        print(self.mac_src)
+        print(self.mac_address_device)
+        
+        ident_msg = get_ident_msg(src=self.mac_src, dst=self.mac_address_device, name_of_station=self.device_name)
+        ans, _ = srp(ident_msg, iface=self.iface, timeout=1, multi=True, verbose=True)
+        print(ans[-1].answer["Ethernet"].src)
+        print(len(ans))
         self.mac_address_device = ans[-1].answer["Ethernet"].src
 
-        if self.mac_address_device == self.mac_src or len(ans) < 2:
+        if self.mac_address_device == self.mac_src or len(ans) < 1:
             print("MAC ADDRESS IS NOT CORRECT!!!")
             print("ABORT")
             return
         # END IDENTIFY DEVICE AND MAC
 
+        '''
         # SET IP OF DEVICE
         set_ip_msg = get_set_ip_msg(
             src=self.mac_src, dst=self.mac_address_device, ip=self.device_ip
@@ -87,9 +93,10 @@ class PNIOConnection:
             print("ABORT")
             return
         # END SET IP OF DEVICE
+        '''
 
         # EXCHANGE CONFIGURATION OF DEVICE
-        time.sleep(2)
+        time.sleep(5)
         answer_incorrect = True
         while answer_incorrect:
             connect_msg = get_connect_dcprpc_msg(
@@ -98,18 +105,34 @@ class PNIOConnection:
             ans, _ = sr(
                 connect_msg, iface=self.iface, timeout=2, multi=True, verbose=False
             )
-
+            print("NUMMER 1")
+            print(self.auuid)
+            print("NUMMER 2")
+            print(self.iface)
+            print("NUMMER 3")
+            print(self.device)
+            print("NUMMER 4")
+            print(ans)
+            print("NUMMER 5")
+            print(len(ans))
+            print("NUMMER 6")
+            #print(ans[-1].answer[Raw])
+            print("NUMMER 7")
+            #print(ans[-1].answer[Raw].load)
+            print("NUMMER 8")
             connect_rsp = DceRpc(ans[-1].answer[Raw].load)
 
             if not connect_rsp.haslayer("PNIOServiceResPDU"):
                 ping_msg = get_ping_msg(ip=self.device_ip)
                 sr1(ping_msg, iface=self.iface, timeout=2, verbose=False)
+                print("NUMMER 9")
                 continue
             dcp_pkt = connect_rsp["PNIOServiceResPDU"]
             # status = 0: "Ok"
             if dcp_pkt.status != 0:
                 ping_msg = get_ping_msg(ip=self.device_ip)
                 sr1(ping_msg, iface=self.iface, timeout=2, verbose=False)
+                print("NUMMER 10")
                 continue
             answer_incorrect = False
 
